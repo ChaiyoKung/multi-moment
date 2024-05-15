@@ -5,6 +5,7 @@ import { useState } from "react";
 import List from "./list";
 import ListItem from "./list-item";
 import { v4 as uuidv4 } from "uuid";
+import { AnimatePresence } from "framer-motion";
 
 export default function ListSection() {
   const [listIds, setListIds] = useState<Array<string>>([]);
@@ -36,10 +37,12 @@ export default function ListSection() {
           No moment, Press &quot;add&quot; button.
         </div>
       ) : (
-        <List>
-          {listIds.map((id) => (
-            <ListItem key={id} onClickRemove={() => removeListById(id)} />
-          ))}
+        <List values={listIds} onReorder={setListIds}>
+          <AnimatePresence>
+            {listIds.map((id) => (
+              <ListItem key={id} value={id} onClickRemove={() => removeListById(id)} />
+            ))}
+          </AnimatePresence>
         </List>
       )}
     </div>
