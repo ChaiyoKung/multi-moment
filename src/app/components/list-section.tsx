@@ -19,7 +19,7 @@ export default function ListSection() {
   };
 
   return (
-    <section className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div className="flex justify-end">
         <button
           className="bg-orange-500 text-orange-50 flex items-center gap-2 px-3 py-2 rounded-2xl font-medium"
@@ -42,6 +42,6 @@ export default function ListSection() {
           ))}
         </List>
       )}
-    </section>
+    </div>
   );
 }
