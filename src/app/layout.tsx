@@ -1,6 +1,10 @@
 import type { Metadata } from "next";
 import { Prompt } from "next/font/google";
+import { config } from "@fortawesome/fontawesome-svg-core";
 import "./globals.css";
+import "@fortawesome/fontawesome-svg-core/styles.css";
+import clsx from "clsx/lite";
+config.autoAddCss = false;
 
 const prompt = Prompt({
   weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
@@ -20,7 +24,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={prompt.className}>{children}</body>
+      <body className={clsx(prompt.className, "bg-gray-800")}>{children}</body>
     </html>
   );
 }
