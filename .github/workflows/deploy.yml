@@ -24,6 +24,10 @@ concurrency:
   group: "pages"
   cancel-in-progress: false
 
+env:
+  NODE_VERSION: "18"
+  PNPM_VERSION: 8
+
 jobs:
   # Build job
   build:
@@ -35,12 +39,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: ${{ env.NODE_VERSION }}
 
       - uses: pnpm/action-setup@v4
         name: Install pnpm
         with:
-          version: 8
+          version: ${{ env.PNPM_VERSION }}
           run_install: false
 
       - name: Get pnpm store directory
