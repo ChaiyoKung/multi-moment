@@ -1,4 +1,6 @@
-import ListSection from "./components/list-section";
+import dynamic from "next/dynamic";
+
+const ListSection = dynamic(() => import("./components/list-section"), { ssr: false });
 
 export default function Home() {
   return (

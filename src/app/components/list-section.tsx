@@ -1,22 +1,28 @@
 "use client";
 import { faPlusCircle } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { useState } from "react";
 import List from "./list";
 import ListItem from "./list-item";
 import { v4 as uuidv4 } from "uuid";
 import { AnimatePresence } from "framer-motion";
+import { useLocalStorage } from "@uidotdev/usehooks";
+import { LocalStorageKey } from "../../constants";
+import { useState } from "react";
 
 export default function ListSection() {
-  const [listIds, setListIds] = useState<Array<string>>([]);
+  const [listIds, setListIds] = useLocalStorage<Array<string>>(LocalStorageKey.ListIds, []);
+  const [autoFocus, setAutoFocus] = useState<boolean>(false);
 
   const addList = () => {
     const id = uuidv4();
     setListIds((prev) => [id, ...prev]);
+    setAutoFocus(true);
   };
 
   const removeListById = (id: string) => {
     setListIds((prev) => prev.filter((i) => i !== id));
+    localStorage.removeItem(LocalStorageKey.ListTitleById(id));
+    localStorage.removeItem(LocalStorageKey.ListTimeById(id));
   };
 
   return (
@@ -40,7 +46,7 @@ export default function ListSection() {
         <List values={listIds} onReorder={setListIds}>
           <AnimatePresence>
             {listIds.map((id) => (
-              <ListItem key={id} value={id} onClickRemove={() => removeListById(id)} />
+              <ListItem key={id} id={id} value={id} onClickRemove={() => removeListById(id)} autoFocus={autoFocus} />
             ))}
           </AnimatePresence>
         </List>

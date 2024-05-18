@@ -5,19 +5,24 @@ import { ChangeEvent, KeyboardEvent, MouseEvent, useEffect, useMemo, useRef, use
 import { formatDuration } from "../../libs/dayjs";
 import clsx from "clsx/lite";
 import { Reorder, useDragControls } from "framer-motion";
+import { useLocalStorage } from "@uidotdev/usehooks";
+import { LocalStorageKey } from "../../constants";
 
 export interface ListItemProps<V> {
+  id: string;
   value: V;
   onClickRemove?: (event: MouseEvent<HTMLButtonElement>) => void;
+  autoFocus?: boolean;
 }
 
-export default function ListItem<V>({ value, onClickRemove: onClickDelete }: ListItemProps<V>) {
-  const [title, setTitle] = useState<string>("");
+export default function ListItem<V>({ id, value, onClickRemove: onClickDelete, autoFocus }: ListItemProps<V>) {
+  const [title, setTitle] = useLocalStorage<string>(LocalStorageKey.ListTitleById(id), "");
   const [time, setTime] = useState<number>(0);
   const [isTracking, setIsTracking] = useState<boolean>(false);
   const timer = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
   const controls = useDragControls();
+  const isFirstLoad = useRef<boolean>(true);
 
   const formattedTime = useMemo(() => formatDuration(time), [time]);
 
@@ -33,6 +38,20 @@ export default function ListItem<V>({ value, onClickRemove: onClickDelete }: Lis
   const handleChangeTitle = (e: ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
   };
+
+  useEffect(() => {
+    if (!isFirstLoad.current) {
+      localStorage.setItem(LocalStorageKey.ListTimeById(id), String(time));
+    }
+  }, [id, time]);
+
+  useEffect(() => {
+    if (isFirstLoad.current) {
+      const time = localStorage.getItem(LocalStorageKey.ListTimeById(id));
+      if (time !== null) setTime(Number(time));
+      isFirstLoad.current = false;
+    }
+  }, [id]);
 
   useEffect(() => {
     if (isTracking) {
@@ -82,7 +101,7 @@ export default function ListItem<V>({ value, onClickRemove: onClickDelete }: Lis
               type="text"
               className="text-2xl w-full text-gray-300 bg-transparent placeholder:text-gray-500 focus:outline-none border-b border-b-gray-500 focus:border-b-blue-400"
               placeholder="Title..."
-              autoFocus
+              autoFocus={autoFocus}
               value={title}
               onChange={handleChangeTitle}
               onKeyDown={handlePressEnter}
