@@ -1,12 +1,13 @@
 "use client";
 import { faPause, faPlay, faSort, faStop, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { ChangeEvent, KeyboardEvent, MouseEvent, useEffect, useMemo, useRef, useState } from "react";
+import { ChangeEvent, KeyboardEvent, MouseEvent, useEffect, useMemo, useRef } from "react";
 import { formatDuration } from "../../libs/dayjs";
 import clsx from "clsx/lite";
 import { Reorder, useDragControls } from "framer-motion";
 import { useLocalStorage } from "@uidotdev/usehooks";
 import { LocalStorageKey } from "../../constants";
+import useTimeTracking from "../../hooks/use-time-tracking";
 
 export interface ListItemProps<V> {
   id: string;
@@ -17,24 +18,12 @@ export interface ListItemProps<V> {
 
 export default function ListItem<V>({ id, value, onClickRemove: onClickDelete, autoFocus }: ListItemProps<V>) {
   const [title, setTitle] = useLocalStorage<string>(LocalStorageKey.ListTitleById(id), "");
-  const startTime = useRef<number>(0);
-  const [time, setTime] = useState<number>(0);
-  const [isTracking, setIsTracking] = useState<boolean>(false);
+  const { time, setTime, isTracking, start, stop, reset } = useTimeTracking();
   const inputRef = useRef<HTMLInputElement>(null);
   const controls = useDragControls();
   const isFirstLoad = useRef<boolean>(true);
 
   const formattedTime = useMemo(() => formatDuration(time, "ms"), [time]);
-
-  const toggleIsTracking = () => {
-    setIsTracking((prev) => !prev);
-  };
-
-  const handleClickStop = () => {
-    startTime.current = 0;
-    setTime(0);
-    setIsTracking(false);
-  };
 
   const handleChangeTitle = (e: ChangeEvent<HTMLInputElement>) => {
     setTitle(e.target.value);
@@ -52,29 +41,7 @@ export default function ListItem<V>({ id, value, onClickRemove: onClickDelete, a
       if (time !== null) setTime(Number(time));
       isFirstLoad.current = false;
     }
-  }, [id]);
-
-  useEffect(() => {
-    let timer: NodeJS.Timeout | undefined = undefined;
-    if (isTracking) {
-      startTime.current = Date.now() - time;
-      // If there is a possibility that your logic could take longer to execute than the interval time,
-      // it is recommended that you recursively call a named function using `setTimeout()`.
-      // Ref: https://developer.mozilla.org/en-US/docs/Web/API/setInterval#ensure_that_execution_duration_is_shorter_than_interval_frequency
-      (function loop() {
-        timer = setTimeout(() => {
-          setTime(Date.now() - startTime.current);
-          loop();
-        }, 1000);
-      })();
-    } else {
-      clearTimeout(timer);
-    }
-
-    return () => {
-      clearTimeout(timer);
-    };
-  }, [isTracking, time]);
+  }, [id, setTime]);
 
   const handlePressEnter = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.code === "Enter") {
@@ -125,7 +92,7 @@ export default function ListItem<V>({ id, value, onClickRemove: onClickDelete, a
               ? "border border-solid border-blue-400 text-blue-400 hover:bg-blue-100 hover:bg-opacity-10"
               : "text-blue-800 bg-blue-400 hover:bg-blue-500"
           )}
-          onClick={toggleIsTracking}
+          onClick={isTracking ? stop : start}
         >
           <FontAwesomeIcon icon={isTracking ? faPause : faPlay} />
         </button>
@@ -133,7 +100,7 @@ export default function ListItem<V>({ id, value, onClickRemove: onClickDelete, a
           className={
             "flex justify-center items-center text-sm border border-solid border-red-400 text-red-400 hover:bg-red-100 hover:bg-opacity-10 aspect-square w-9 h-9 rounded-full"
           }
-          onClick={handleClickStop}
+          onClick={reset}
         >
           <FontAwesomeIcon icon={faStop} />
         </button>
