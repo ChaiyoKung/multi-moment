@@ -19,7 +19,6 @@ export default function ListItem<V>({ id, value, onClickRemove: onClickDelete, a
   const [title, setTitle] = useLocalStorage<string>(LocalStorageKey.ListTitleById(id), "");
   const [time, setTime] = useState<number>(0);
   const [isTracking, setIsTracking] = useState<boolean>(false);
-  const timer = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
   const controls = useDragControls();
   const isFirstLoad = useRef<boolean>(true);
@@ -54,16 +53,23 @@ export default function ListItem<V>({ id, value, onClickRemove: onClickDelete, a
   }, [id]);
 
   useEffect(() => {
+    let timer: NodeJS.Timeout | undefined = undefined;
     if (isTracking) {
-      timer.current = setInterval(() => {
-        setTime((prevTime) => prevTime + 1);
-      }, 1000);
+      // If there is a possibility that your logic could take longer to execute than the interval time,
+      // it is recommended that you recursively call a named function using `setTimeout()`.
+      // Ref: https://developer.mozilla.org/en-US/docs/Web/API/setInterval#ensure_that_execution_duration_is_shorter_than_interval_frequency
+      (function loop() {
+        timer = setTimeout(() => {
+          setTime((prevTime) => prevTime + 1);
+          loop();
+        }, 1000);
+      })();
     } else {
-      clearInterval(timer.current);
+      clearTimeout(timer);
     }
 
     return () => {
-      clearInterval(timer.current);
+      clearTimeout(timer);
     };
   }, [isTracking]);
 
