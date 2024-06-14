@@ -83,9 +83,11 @@ export default function ListItem<V>({ id, value, onClickRemove: onClickDelete, a
               onKeyDown={handlePressEnter}
             />
           </div>
-          <p className={clsx("text-2xl", isTracking || time > 0 ? "text-blue-300" : "text-gray-400")}>
-            {formattedTime}
-          </p>
+          {(isTracking || time > 0) && (
+            <p className={clsx("text-2xl", isTracking || time > 0 ? "text-blue-300" : "text-gray-400")}>
+              {formattedTime}
+            </p>
+          )}
         </div>
         <button
           className={clsx(
